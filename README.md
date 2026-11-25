@@ -68,6 +68,62 @@ Rather than disqualifying low-cost vendors whose material falls below the **19.0
 | Vendor H | $80.00 | 25% | Rail | Non-Union | 490 | **0.0** | $0 |
 | **Total / Weighted** | **$59.81/ton** | **19.00%** | **505 Rail / 720 Truck** | **55.10% Union** | — | **1,225.0** | **$73,267,500** |
 
+## Visual Architecture & Optimal Flow Maps
+
+### 1. Multi-Tier Distribution Network (Optimal Routing Flows)
+```mermaid
+flowchart LR
+    subgraph Hubs["Supply Hubs (Capacity)"]
+        HA["Hub Alpha<br/>(Used: 140k / 300k)"]
+        HB["Hub Beta<br/>(Used: 290k / 400k)"]
+    end
+
+    subgraph Depots["Intermediate Transfer Depots"]
+        DN["Depot North<br/>(0 / 140k - Idle)"]
+        DC["Depot Central<br/>(100k / 100k - 100% Cap)"]
+        DE["Depot East<br/>(110k / 200k - 55% Cap)"]
+        DS["Depot South<br/>(80k / 80k - 100% Cap)"]
+    end
+
+    subgraph Sites["Terminal Operational Sites"]
+        S1["Site S1 (100k)"]
+        S2["Site S2 (20k)"]
+        S3["Site S3 (80k)"]
+        S4["Site S4 (70k)"]
+        S5["Site S5 (120k)"]
+        S6["Site S6 (40k)"]
+    end
+
+    HA -->|"100,000t @ \$1.20"| S1
+    HA -->|"40,000t @ \$1.20"| S6
+    HB -->|"100,000t @ \$0.50"| DC
+    HB -->|"110,000t @ \$0.70"| DE
+    HB -->|"80,000t @ \$0.40"| DS
+
+    DC -->|"20,000t @ \$0.70"| S2
+    DC -->|"70,000t @ \$1.20"| S4
+    DC -->|"10,000t @ \$0.70"| S5
+    DE -->|"110,000t @ \$0.70"| S5
+    DS -->|"80,000t @ \$0.40"| S3
+
+    style DC fill:#ffe5e5,stroke:#c0392b,stroke-width:2px
+    style DS fill:#ffe5e5,stroke:#c0392b,stroke-width:2px
+    style DN fill:#f4f6f7,stroke:#95a5a6,stroke-dasharray: 5 5
+```
+*(Red-outlined depots indicate **100% binding throughput bottlenecks**.)*
+
+### 2. Data Governance & Optimization Pipeline
+```mermaid
+flowchart TD
+    A["Raw Vendor Bids & Freight Matrices"] --> B["Step 1: Schema & Unit Reconciliation<br/>(Standardize to Tons / Kilotons)"]
+    B --> C["Step 2: Infeasible Arc & Null Audit<br/>(Mask Unavailable Lanes)"]
+    C --> D["Step 3: Pre-Solve Feasibility Check<br/>(Verify Supply >= Demand)"]
+    D --> E["Step 4: Prescriptive Linear Optimization<br/>(Cost Minimization + Spec Blending)"]
+    E --> F["Step 5: Post-Solve Mass-Balance Audit<br/>(Verify Flow Conservation < 1e-6)"]
+    F --> G["Executive Decision Memo & Bottleneck Report"]
+```
+
+
 **Constraint Verification & Binding Bottlenecks:**
 * **Technical Quality Spec:** Achieved **19.00% exact weighted volatility** (Binding Constraint).
 * **Truck Receiving Infrastructure:** Utilized **720.0 / 720.0 kilotons (100%)** (Binding Constraint — expanding truck unloading capacity would unlock additional savings from low-cost truck vendors).
